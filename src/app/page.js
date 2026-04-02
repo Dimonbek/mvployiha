@@ -58,6 +58,7 @@ export default function Home() {
   const [features, setFeatures] = useState([]);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null); 
+  const [activeAgent, setActiveAgent] = useState(null); // v7.0 Omni-Agent
   const [metadata, setMetadata] = useState(null); // Advanced Architecture Info
   
   // Premium Features
@@ -104,6 +105,18 @@ export default function Home() {
     }
   };
 
+  const handleCategoryClick = (catId) => {
+    setSelectedCategory(catId);
+    let q = '';
+    if (catId === 'Smartfonlar') q = 'ayfon samsung redmi';
+    else if (catId === 'Noutbuklar') q = 'macbook noutbuk';
+    else if (catId === 'Televizorlar') q = 'televizor';
+    else if (catId === 'Aksessuarlar') q = 'aksessuar watch buds';
+    
+    setQuery(q);
+    handleSearch(null, q);
+  };
+
   const handleSearch = async (e, forcedQuery) => {
     if (e) e.preventDefault();
     const finalQuery = forcedQuery || query;
@@ -114,7 +127,6 @@ export default function Home() {
     setError(null);
     setResults([]);
     setFeatures([]);
-    // We NO LONGER close the graph automatically here, per user request "always on"
 
     try {
       const res = await fetch(`/api/scrape?query=${encodeURIComponent(finalQuery)}`);
@@ -123,6 +135,7 @@ export default function Home() {
       setResults(data.results);
       setFeatures(data.features || []);
       setMetadata(data.metadata || null);
+      setActiveAgent(data.agent || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -225,7 +238,7 @@ export default function Home() {
                   ) : (
                     <div className="icons-container" style={{ margin: '0' }}>
                       {CATEGORIES.map((cat, idx) => (
-                        <div key={idx} className="icon-box" onClick={() => { setSelectedCategory(cat.id); }}>
+                        <div key={idx} className="icon-box" onClick={() => { handleCategoryClick(cat.id); }}>
                           <div className="emoji-wrapper">{cat.icon}</div>
                           <span>{cat.id}</span>
                         </div>
@@ -236,7 +249,7 @@ export default function Home() {
               )}
             </section>
 
-            {/* Results View - NOW INSIDE THE LEFT CONTENT FOR SPLIT VIEW SUPPORT */}
+            {/* Results View */}
             {hasSearched && (
               <div className="animate-in" style={{ animationDelay: '0.1s' }}>
                 <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
@@ -271,8 +284,9 @@ export default function Home() {
                     background: 'hsl(var(--muted)/0.2)', padding: '0.4rem 1rem',
                     borderRadius: '8px', width: 'fit-content'
                   }}>
-                    <span>🖥️ Node: {metadata.node}</span>
-                    <span>🌐 UA: {metadata.ua.substring(0, 30)}...</span>
+                    <span>🖥️ Agent: {activeAgent?.name || metadata.agent}</span>
+                    <span>🌐 Node: {metadata.node}</span>
+                    <span>🧪 Focus: {activeAgent?.focus || "Research"}</span>
                     <span>🔍 AI Normalization: Active</span>
                   </div>
                 )}
@@ -315,6 +329,20 @@ export default function Home() {
                               })()}
                             </div>
                             <h3 className="card-title">{device.model}</h3>
+                            
+                            {/* Price Insight Badge */}
+                            {device.insight && (
+                              <div style={{ 
+                                fontSize: '0.6rem', padding: '0.2rem 0.5rem', 
+                                borderRadius: '4px', width: 'fit-content', marginBottom: '0.5rem', margin: '0 auto',
+                                background: device.changeType === 'down' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                color: device.changeType === 'down' ? '#22c55e' : '#ef4444',
+                                border: `1px solid ${device.changeType === 'down' ? '#22c55e44' : '#ef444444'}`
+                              }}>
+                                ✨ {device.insight}
+                              </div>
+                            )}
+
                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.25rem' }}>
                               <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', background: 'hsl(var(--muted)/0.3)', padding: '1px 6px', borderRadius: '4px' }}>{device.capacity}</span>
                               <span style={{ fontSize: '0.7rem', fontWeight: 600, color: device.condition?.includes('Yangi') ? '#22c55e' : '#f59e0b', background: 'hsl(var(--muted)/0.3)', padding: '1px 6px', borderRadius: '4px' }}>{device.condition || 'Yangi'}</span>
