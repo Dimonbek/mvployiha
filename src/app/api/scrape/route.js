@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 /**
- * MARKET RESEARCH AGENT (Mvployiha v7.0 - Omni-Agent Architecture)
- * Logic: Category Synonyms, Specialized Agents, and Price Insights.
+ * MARKET RESEARCH AGENT (Mvployiha v7.2 - Precision Omni-Agent)
+ * Logic: Strict Token Intersection, Zero-Leak Category Filtering.
  */
 
 const USER_AGENTS = [
@@ -12,13 +12,13 @@ const USER_AGENTS = [
 ];
 
 const CATEGORY_MAP = {
-  iphone: ["iphone", "ayfon", "apple phone"],
-  samsung: ["samsung", "galaxy", "s24", "s23"],
-  redmi: ["redmi", "xiaomi", "poco", "mi"],
+  iphone: ["iphone", "ayfon", "apple phone", "apple smartphone"],
+  samsung: ["samsung", "galaxy", "s24", "s23", "samsung smartphone"],
+  redmi: ["redmi", "xiaomi", "poco", "mi", "redmi smartphone"],
   macbook: ["macbook", "apple laptop", "m3", "m2"],
   windows: ["laptop", "noutbuk", "kompyuter", "asus", "hp", "lenovo"],
-  tv: ["tv", "televizor", "ekran", "smart tv", "artel"],
-  accessories: ["accessories", "aksessuar", "quloqchin", "soat", "buds", "watch", "powerbank"]
+  tv: ["tv", "televizor", "ekran", "smart tv", "artel tv", "samsung tv", "lg tv"],
+  accessories: ["accessories", "aksessuar", "quloqchin", "soat", "buds", "watch", "powerbank", "airpods"]
 };
 
 const CATEGORY_AGENTS = {
@@ -30,14 +30,6 @@ const CATEGORY_AGENTS = {
   tv: { name: "Media Master", focus: "Kino va Sifat" },
   accessories: { name: "Gadget Guru", focus: "Ovoz va Batareya" },
   default: { name: "Global Scout", focus: "Barcha Market" }
-};
-
-const normalizeText = (text) => text.toLowerCase().replace(/[^\w\sа-яё]/gi, '').trim();
-
-const fuzzyMatch = (query, target) => {
-  const qTokens = query.toLowerCase().split(' ').filter(t => t.length >= 2);
-  const tStr = target.toLowerCase();
-  return qTokens.every(token => tStr.includes(token));
 };
 
 const formatPrice = (num) => num.toLocaleString('ru-RU') + " UZS";
@@ -94,49 +86,54 @@ const MARKET_KB = {
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const rawQuery = (searchParams.get('query') || '').trim();
-  const query = rawQuery.toLowerCase();
+  const queryTokens = rawQuery.toLowerCase().split(/\s+/).filter(t => t.length > 0);
 
-  if (!query) return NextResponse.json({ error: 'Qidiruv so\'zi kiritilmadi' }, { status: 400 });
+  if (queryTokens.length === 0) return NextResponse.json({ error: 'Qidiruv so\'zi kiritilmadi' }, { status: 400 });
 
   const selectedUA = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-  const tokens = query.split(' ');
-  
-  let allMatches = [];
-  let foundCategory = null;
+  let matches = [];
 
-  // 1. IMPROVED MATCHING: Category Synonyms (Fix for 0 results)
-  for (const [catId, keywords] of Object.entries(CATEGORY_MAP)) {
-    // If any token matches a category keyword, we treat it as a category search
-    if (keywords.some(k => tokens.includes(k))) {
-      foundCategory = catId;
-      // If matches category, add ALL items from that category
-      MARKET_KB[catId].forEach(item => {
-        allMatches.push({ ...item, category: catId });
+  // V7.2 PRECISION SEARCH: Strict Token Intersection
+  for (const [catId, items] of Object.entries(MARKET_KB)) {
+    const catKeywords = CATEGORY_MAP[catId] || [];
+    
+    items.forEach(item => {
+      const itemName = item.name.toLowerCase();
+      
+      // An item matches ONLY if EVERY token in query is found in (item.name OR catKeywords)
+      const allTokensMatch = queryTokens.every(token => {
+        const inName = itemName.includes(token);
+        const inCategory = catKeywords.some(kw => kw.includes(token));
+        return inName || inCategory;
       });
-    }
+
+      if (allTokensMatch) {
+        // Calculate relevance score
+        let score = 0;
+        queryTokens.forEach(token => {
+          if (itemName.includes(token)) score += 10; // Name match is higher priority
+          if (catKeywords.some(kw => kw.includes(token))) score += 5;
+        });
+        matches.push({ ...item, category: catId, score });
+      }
+    });
   }
 
-  // 2. FUZZY SEARCH: If no category matches, or for specific model search
-  if (allMatches.length === 0) {
-    for (const [catId, items] of Object.entries(MARKET_KB)) {
-      items.forEach(item => {
-        if (item.name.toLowerCase().includes(query) || fuzzyMatch(query, item.name)) {
-          allMatches.push({ ...item, category: catId });
-        }
-      });
-    }
+  // Sort by score (desc) then by base price (desc)
+  matches.sort((a, b) => b.score - a.score || b.base - a.base);
+
+  // Identify the dominant agent based on results
+  let activeAgent = CATEGORY_AGENTS.default;
+  if (matches.length > 0) {
+    const topCategory = matches[0].category;
+    activeAgent = CATEGORY_AGENTS[topCategory] || CATEGORY_AGENTS.default;
   }
 
-  // 3. SELECT AGENT
-  const activeAgent = CATEGORY_AGENTS[foundCategory] || CATEGORY_AGENTS.default;
-
-  // 4. MAP RESULTS WITH INSIGHTS
-  const finalResults = allMatches.map(m => {
+  const finalResults = matches.map(m => {
     const pUz = simulatePriceChange(m.base);
     const pAs = simulatePriceChange(m.base * 1.01);
     
-    // Agent Wisdom Bonus: Price Insights
-    const priceChange = Math.random() > 0.7 ? (Math.random() > 0.5 ? "2% pasaydi" : "1.5% ko'tarildi") : null;
+    const priceChange = Math.random() > 0.8 ? (Math.random() > 0.5 ? "2% pasaydi" : "1% ko'tarildi") : null;
     const agentNote = priceChange ? `${activeAgent.name}: ${priceChange}` : "Bot: Narx barqaror";
 
     let icon = "smartphone";
@@ -144,7 +141,7 @@ export async function GET(request) {
     else if (m.category === 'tv') icon = "tv";
     else if (m.category === 'accessories') {
       const n = m.name.toLowerCase();
-      if (n.includes('buds') || n.includes('airpods')) icon = "buds";
+      if (n.includes('airpods') || n.includes('buds')) icon = "buds";
       else if (n.includes('watch')) icon = "watch";
       else if (n.includes('powerbank')) icon = "powerbank";
       else icon = "headphones";
@@ -171,12 +168,12 @@ export async function GET(request) {
     agent: activeAgent,
     features: [
       { feature: "Yetkazib berish", asaxiy: "Tezkor", uzum: "1 kun" },
-      { feature: "Agent Diqqati", asaxiy: activeAgent.focus, uzum: "Optimal" },
-      { feature: "Live Monitoring", asaxiy: "Active 🟢", uzum: "Active 🔵" }
+      { feature: "Agent Fokus", asaxiy: activeAgent.focus, uzum: "Optimal" },
+      { feature: "Filtratsiya", asaxiy: "Precision Active 🎯", uzum: "Strict ✅" }
     ],
     metadata: {
       ua: selectedUA,
-      node: `Tashkent-Node-0${Math.floor(Math.random() * 9) + 1}`,
+      node: `Tashkent-Node-PR-${Math.floor(Math.random() * 99) + 1}`,
       agent: activeAgent.name
     }
   });

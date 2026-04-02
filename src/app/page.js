@@ -107,14 +107,7 @@ export default function Home() {
 
   const handleCategoryClick = (catId) => {
     setSelectedCategory(catId);
-    let q = '';
-    if (catId === 'Smartfonlar') q = 'ayfon samsung redmi';
-    else if (catId === 'Noutbuklar') q = 'macbook noutbuk';
-    else if (catId === 'Televizorlar') q = 'televizor';
-    else if (catId === 'Aksessuarlar') q = 'aksessuar watch buds';
-    
-    setQuery(q);
-    handleSearch(null, q);
+    setHasSearched(false); // Ensure we stay in selection mode
   };
 
   const handleSearch = async (e, forcedQuery) => {
@@ -277,19 +270,7 @@ export default function Home() {
                   </button>
                 </div>
 
-                {metadata && (
-                  <div style={{ 
-                    display: 'flex', gap: '1rem', marginBottom: '1.5rem', 
-                    fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))',
-                    background: 'hsl(var(--muted)/0.2)', padding: '0.4rem 1rem',
-                    borderRadius: '8px', width: 'fit-content'
-                  }}>
-                    <span>🖥️ Agent: {activeAgent?.name || metadata.agent}</span>
-                    <span>🌐 Node: {metadata.node}</span>
-                    <span>🧪 Focus: {activeAgent?.focus || "Research"}</span>
-                    <span>🔍 AI Normalization: Active</span>
-                  </div>
-                )}
+                {/* Technical metadata hidden per user request */}
 
                 {error && (
                   <div style={{ padding: '1rem', border: '1px solid hsl(var(--destructive))', borderRadius: 'var(--radius)', color: 'hsl(var(--destructive))', textAlign: 'center', marginBottom: '2rem' }}>
@@ -391,6 +372,22 @@ export default function Home() {
                       </section>
                     )}
                   </>
+                )}
+
+                {!loading && !error && hasSearched && results.length === 0 && (
+                  <div className="animate-in" style={{ 
+                    padding: '4rem 2rem', 
+                    textAlign: 'center', 
+                    background: 'hsl(var(--muted)/0.2)', 
+                    borderRadius: 'var(--radius)',
+                    border: '1px dashed hsl(var(--border))'
+                  }}>
+                    <Search size={48} style={{ margin: '0 auto 1.5rem', opacity: 0.2 }} />
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Natijalar topilmadi</h3>
+                    <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.875rem' }}>
+                      Boshqa kalit so'zlar bilan qidirib ko'ring yoki kategoriyani o'zgartiring.
+                    </p>
+                  </div>
                 )}
               </div>
             )}
