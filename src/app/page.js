@@ -259,6 +259,21 @@ export default function Home() {
                         <Activity size={12} />
                         Agent: Faol ({lastCheckTime})
                       </div>
+                      <div style={{ height: '12px', width: '1px', background: 'hsl(var(--border))' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ 
+                          fontSize: '0.6rem', padding: '0.15rem 0.5rem', background: metadata?.mode === 'LIVE' ? '#e11d4820' : 'hsl(var(--muted))', 
+                          color: metadata?.mode === 'LIVE' ? '#e11d48' : 'hsl(var(--muted-foreground))', 
+                          borderRadius: '100px', fontWeight: 700, border: `1px solid ${metadata?.mode === 'LIVE' ? '#e11d4840' : 'hsl(var(--border))'}`
+                        }}>
+                          {metadata?.mode === 'LIVE' ? '🔴 LIVE' : '📁 CACHED'}
+                        </span>
+                        {metadata?.duration && (
+                          <span style={{ fontSize: '0.6rem', color: 'hsl(var(--muted-foreground))', opacity: 0.8 }}>
+                            {metadata.duration}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button 
@@ -396,23 +411,6 @@ export default function Home() {
           {/* RIGHT: Side Graph (Always rendering its container for transition) */}
           <div className="side-graph-container">
             <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', padding: '2rem', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Natijalar: "{resultsQuery}"</h2>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ 
-                      fontSize: '0.65rem', padding: '0.2rem 0.6rem', background: '#e11d4820', color: '#e11d48', 
-                      borderRadius: '100px', fontWeight: 600, border: '1px solid #e11d4840' 
-                    }}>
-                      {metadata?.mode === 'LIVE' ? '🔴 LIVE' : '📁 CACHED'}
-                    </span>
-                    <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>
-                      {metadata?.duration || '0ms'}
-                    </span>
-                    <button onClick={handleReset} className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.75rem' }}>
-                      Orqaga
-                    </button>
-                  </div>
-                </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{selectedCategory ? selectedCategory : "Bozor"} Trendi</h2>
