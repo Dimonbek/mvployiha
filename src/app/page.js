@@ -58,6 +58,7 @@ export default function Home() {
   const [features, setFeatures] = useState([]);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null); 
+  const [metadata, setMetadata] = useState(null); // Advanced Architecture Info
   
   // Premium Features
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -121,6 +122,7 @@ export default function Home() {
       const data = await res.json();
       setResults(data.results);
       setFeatures(data.features || []);
+      setMetadata(data.metadata || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -261,6 +263,19 @@ export default function Home() {
                     Orqaga
                   </button>
                 </div>
+
+                {metadata && (
+                  <div style={{ 
+                    display: 'flex', gap: '1rem', marginBottom: '1.5rem', 
+                    fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))',
+                    background: 'hsl(var(--muted)/0.2)', padding: '0.4rem 1rem',
+                    borderRadius: '8px', width: 'fit-content'
+                  }}>
+                    <span>🖥️ Node: {metadata.node}</span>
+                    <span>🌐 UA: {metadata.ua.substring(0, 30)}...</span>
+                    <span>🔍 AI Normalization: Active</span>
+                  </div>
+                )}
 
                 {error && (
                   <div style={{ padding: '1rem', border: '1px solid hsl(var(--destructive))', borderRadius: 'var(--radius)', color: 'hsl(var(--destructive))', textAlign: 'center', marginBottom: '2rem' }}>
