@@ -260,20 +260,19 @@ export default function Home() {
                         Agent: Faol ({lastCheckTime})
                       </div>
                       <div style={{ height: '12px', width: '1px', background: 'hsl(var(--border))' }} />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ 
-                          fontSize: '0.6rem', padding: '0.15rem 0.5rem', background: metadata?.mode === 'LIVE' ? '#e11d4820' : 'hsl(var(--muted))', 
-                          color: metadata?.mode === 'LIVE' ? '#e11d48' : 'hsl(var(--muted-foreground))', 
-                          borderRadius: '100px', fontWeight: 700, border: `1px solid ${metadata?.mode === 'LIVE' ? '#e11d4840' : 'hsl(var(--border))'}`
-                        }}>
-                          {metadata?.mode === 'LIVE' ? '🔴 LIVE' : '📁 CACHED'}
-                        </span>
-                        {metadata?.duration && (
-                          <span style={{ fontSize: '0.6rem', color: 'hsl(var(--muted-foreground))', opacity: 0.8 }}>
-                            {metadata.duration}
-                          </span>
-                        )}
-                      </div>
+                    {metadata?.mode === 'LIVE' && (
+                      <span style={{ 
+                        fontSize: '0.65rem', padding: '0.2rem 0.6rem', background: '#e11d4820', 
+                        color: '#e11d48', borderRadius: '100px', fontWeight: 700, border: '1px solid #e11d4840' 
+                      }}>
+                        🔴 LIVE
+                      </span>
+                    )}
+                    {metadata?.mode === 'LIVE' && (
+                      <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))', opacity: 0.8 }}>
+                        {metadata?.duration || '0ms'}
+                      </span>
+                    )}
                     </div>
                   </div>
                   <button 
