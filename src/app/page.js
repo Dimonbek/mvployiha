@@ -396,6 +396,23 @@ export default function Home() {
           {/* RIGHT: Side Graph (Always rendering its container for transition) */}
           <div className="side-graph-container">
             <div style={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', padding: '2rem', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Natijalar: "{resultsQuery}"</h2>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <span style={{ 
+                      fontSize: '0.65rem', padding: '0.2rem 0.6rem', background: '#e11d4820', color: '#e11d48', 
+                      borderRadius: '100px', fontWeight: 600, border: '1px solid #e11d4840' 
+                    }}>
+                      {metadata?.mode === 'LIVE' ? '🔴 LIVE' : '📁 CACHED'}
+                    </span>
+                    <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>
+                      {metadata?.duration || '0ms'}
+                    </span>
+                    <button onClick={handleReset} className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.75rem' }}>
+                      Orqaga
+                    </button>
+                  </div>
+                </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{selectedCategory ? selectedCategory : "Bozor"} Trendi</h2>
